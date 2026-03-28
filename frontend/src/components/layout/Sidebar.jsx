@@ -5,7 +5,7 @@ import styles from './Sidebar.module.css';
 const seekerNav = [
   { label: 'Home', icon: '⊞', to: '/dashboard' },
   { label: 'Chat', icon: '💬', to: '/chat' },
-  { label: 'Professional Support', icon: '🤝', to: '/professional-support' },
+  { label: 'Support', icon: '🤝', to: '/professional-support' },
 ];
 
 const helperNav = [

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../../components/layout/AppLayout';
 import styles from './RequestBriefPage.module.css';
@@ -5,9 +6,18 @@ import styles from './RequestBriefPage.module.css';
 export default function RequestBriefPage() {
   const navigate = useNavigate();
   const { requestId } = useParams();
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [replySent, setReplySent] = useState(false);
 
-  const handleAccept = () => navigate(`/helper/session/${requestId}`);
+  const handleOpenSession = () => navigate(`/helper/session/${requestId}`);
   const handlePass = () => navigate('/helper/dashboard');
+  const handleSendReply = () => {
+    if (!replyText.trim()) return;
+    setReplySent(true);
+    setReplyOpen(false);
+    setReplyText('');
+  };
 
   return (
     <AppLayout role="helper">
@@ -90,13 +100,41 @@ export default function RequestBriefPage() {
               <div className={styles.actionPanel}>
                 <p className={styles.cardLabel}>Session Actions</p>
                 <div className={styles.actionBtns}>
-                  <button className={styles.acceptBtn} onClick={handleAccept}>
-                    ✓ Accept Session
+                  <button className={styles.acceptBtn} onClick={handleOpenSession}>
+                    ▶ Open Session
+                  </button>
+                  <button
+                    className={styles.quickReplyBtn}
+                    onClick={() => setReplyOpen(prev => !prev)}
+                  >
+                    💬 Send Quick Reply
                   </button>
                   <button className={styles.passBtn} onClick={handlePass}>
                     → Pass to another helper
                   </button>
                 </div>
+
+                {replyOpen && (
+                  <div className={styles.replyBox}>
+                    <textarea
+                      className={styles.replyInput}
+                      placeholder="Type a reply to send without opening a session..."
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      rows={3}
+                    />
+                    <div className={styles.replyBoxActions}>
+                      <button className={styles.replySendBtn} onClick={handleSendReply}>Send</button>
+                      <button className={styles.replyCancelBtn} onClick={() => setReplyOpen(false)}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+
+                {replySent && (
+                  <div className={styles.replySentNote}>
+                    ✓ Reply sent to the seeker.
+                  </div>
+                )}
 
                 <div className={styles.metaRows}>
                   <div className={styles.metaRow}>
@@ -130,12 +168,6 @@ export default function RequestBriefPage() {
             </div>
           </div>
 
-          {/* Decorative image strip */}
-          <div className={styles.imageStrip}>
-            <div className={[styles.imageThumb, styles.img1].join(' ')} />
-            <div className={[styles.imageThumb, styles.img2].join(' ')} />
-            <div className={[styles.imageThumb, styles.img3].join(' ')} />
-          </div>
         </div>
       </div>
     </AppLayout>
