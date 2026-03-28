@@ -32,7 +32,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <p className={styles.heroEyebrow}>MANSAATHI · MENTAL HEALTH SUPPORT</p>
+          <p className={styles.heroEyebrow}>MENTAL WIZARD · MENTAL HEALTH SUPPORT</p>
           <h1 className={styles.heroHeadline}>A safe space to breathe.</h1>
           <p className={styles.heroSubText}>मन की बात, बेझिझक।</p>
           <p className={styles.heroBody}>
@@ -41,10 +41,10 @@ export default function LandingPage() {
           </p>
           <div className={styles.heroCtas}>
             <button className={styles.primaryBtn} onClick={() => navigate('/onboarding')}>
-              Get Support →
+              I need support →
             </button>
             <button className={styles.ghostBtn} onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
-              Learn More
+              I want to help others
             </button>
           </div>
         </div>
@@ -97,10 +97,10 @@ export default function LandingPage() {
       {/* CTA Banner */}
       <section className={styles.ctaBanner}>
         <h2 className={styles.ctaTitle}>Ready to take a breath?</h2>
-        <p className={styles.ctaSubtitle}>Join thousands finding peace of mind through MansaathI.</p>
+        <p className={styles.ctaSubtitle}>Join thousands finding peace of mind through Mental Wizard.</p>
         <div className={styles.ctaBtns}>
-          <button className={styles.ctaBannerBtn} onClick={() => navigate('/onboarding')}>Get Support →</button>
-          <button className={styles.ctaBannerGhost}>Learn More</button>
+          <button className={styles.ctaBannerBtn} onClick={() => navigate('/onboarding')}>I need support →</button>
+          <button className={styles.ctaBannerGhost}>I want to help others</button>
         </div>
       </section>
 
@@ -108,14 +108,14 @@ export default function LandingPage() {
       <footer className={styles.footer}>
         <div className={styles.footerLogo}>
           <span className={styles.logoIcon}>+</span>
-          <span className={styles.footerLogoName}>SereneCare</span>
+          <span className={styles.footerLogoName}>Mental Wizard</span>
         </div>
         <div className={styles.footerLinks}>
           <a href="#">Privacy</a>
           <a href="#">Terms</a>
           <a href="#">Contact</a>
         </div>
-        <p className={styles.footerCopy}>© 2026 SereneCare. All rights reserved.</p>
+        <p className={styles.footerCopy}>© 2026 Mental Wizard. All rights reserved.</p>
       </footer>
     </div>
   );

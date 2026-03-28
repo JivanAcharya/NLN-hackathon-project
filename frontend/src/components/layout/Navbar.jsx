@@ -7,7 +7,7 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       <div className={styles.logo}>
         <span className={styles.logoIcon}>+</span>
-        <span className={styles.logoName}>SereneCare</span>
+        <span className={styles.logoName}>Mental Wizard</span>
       </div>
       <div className={styles.links}>
         <Link to="#features" className={styles.link}>Features</Link>
