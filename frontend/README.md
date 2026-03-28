@@ -1,4 +1,4 @@
-# Mental Wizard — Frontend
+# Mental Wizard
 
 A mental health support platform that connects anonymous seekers with verified helpers and AI-assisted tools. Built for a hackathon.
 
