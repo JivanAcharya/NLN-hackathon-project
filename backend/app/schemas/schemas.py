@@ -19,8 +19,8 @@ class Message(BaseModel):
     message : str
 
 class Token(BaseModel):
-    access_token:str | None = None
-    refresh_token:str | None = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
 
 class TokenPayload(BaseModel):

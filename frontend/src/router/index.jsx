@@ -16,13 +16,15 @@ import HelperSessionPage from '../pages/helper/HelperSessionPage';
 import HelperHistoryPage from '../pages/helper/HelperHistoryPage';
 
 function SeekerGuard({ children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user || user.role !== 'seeker') return <Navigate to="/" replace />;
   return children;
 }
 
 function HelperGuard({ children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user || user.role !== 'helper') return <Navigate to="/" replace />;
   return children;
 }

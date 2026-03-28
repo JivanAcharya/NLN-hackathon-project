@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone, UTC
+from datetime import datetime, timedelta, timezone
 from typing import Any,Dict, Annotated
 from fastapi import Depends, HTTPException, status
 # from app.api.deps import TokenDep
@@ -37,7 +37,7 @@ def decode_token(token):
 def token_expired(token):
     try:
         payload = decode_token(token)
-        if not datetime.fromtimestamp(payload.get('exp'), UTC) > datetime.now(UTC):
+        if not datetime.fromtimestamp(payload.get('exp'), timezone.utc) > datetime.now(timezone.utc):
             return True
         return False
 

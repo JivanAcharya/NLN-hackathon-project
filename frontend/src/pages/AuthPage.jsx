@@ -1,28 +1,30 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './AuthPage.module.css';
 
 function SignupForm({ onSwitch }) {
   const navigate = useNavigate();
-  const { loginAsSeeker } = useAuth();
+  const { signupAsSeeker } = useAuth();
   const [form, setForm] = useState({
     fullName: '',
-    aliasName: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.fullName || !form.aliasName || !form.email || !form.password || !form.confirmPassword) {
+    if (submitting.current) return;
+    if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
       setError('Please fill in all fields.');
       return;
     }
@@ -34,10 +36,17 @@ function SignupForm({ onSwitch }) {
       setError('Password must be at least 6 characters.');
       return;
     }
-    // Mock signup — set user then go to onboarding
-    const anonId = Math.floor(1000 + Math.random() * 9000);
-    loginAsSeeker(anonId, 'mock-token');
-    navigate('/onboarding');
+    submitting.current = true;
+    setLoading(true);
+    try {
+      await signupAsSeeker({ username: form.fullName, email: form.email, password: form.password });
+      navigate('/onboarding');
+    } catch (err) {
+      setError(err.message || 'Sign up failed. Please try again.');
+    } finally {
+      submitting.current = false;
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,30 +57,17 @@ function SignupForm({ onSwitch }) {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>Full Name</label>
-            <input
-              className={styles.input}
-              type="text"
-              name="fullName"
-              placeholder="Your real name"
-              value={form.fullName}
-              onChange={handleChange}
-              autoComplete="name"
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Alias Name</label>
-            <input
-              className={styles.input}
-              type="text"
-              name="aliasName"
-              placeholder="How others will see you"
-              value={form.aliasName}
-              onChange={handleChange}
-            />
-          </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Full Name</label>
+          <input
+            className={styles.input}
+            type="text"
+            name="fullName"
+            placeholder="Your name"
+            value={form.fullName}
+            onChange={handleChange}
+            autoComplete="name"
+          />
         </div>
 
         <div className={styles.field}>
@@ -115,8 +111,8 @@ function SignupForm({ onSwitch }) {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" className={styles.submitBtn}>
-          Create Account →
+        <button type="submit" className={styles.submitBtn} disabled={loading}>
+          {loading ? 'Creating account…' : 'Create Account →'}
         </button>
       </form>
 
@@ -135,21 +131,32 @@ function LoginForm({ onSwitch }) {
   const { loginAsSeeker } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting.current) return;
     if (!form.email || !form.password) {
       setError('Please enter your email and password.');
       return;
     }
-    const anonId = Math.floor(1000 + Math.random() * 9000);
-    loginAsSeeker(anonId, 'mock-token');
-    navigate('/dashboard');
+    submitting.current = true;
+    setLoading(true);
+    try {
+      await loginAsSeeker({ email: form.email, password: form.password });
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Login failed. Check your credentials.');
+    } finally {
+      submitting.current = false;
+      setLoading(false);
+    }
   };
 
   return (
@@ -188,8 +195,8 @@ function LoginForm({ onSwitch }) {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" className={styles.submitBtn}>
-          Log In →
+        <button type="submit" className={styles.submitBtn} disabled={loading}>
+          {loading ? 'Logging in…' : 'Log In →'}
         </button>
       </form>
 
@@ -223,13 +230,11 @@ export default function AuthPage() {
       <div className={styles.blobTop} />
       <div className={styles.blobBottom} />
 
-      {/* Header */}
       <header className={styles.header}>
         <span className={styles.logo}>Mental Wizard</span>
         <button className={styles.closeBtn} onClick={() => navigate('/')}>✕</button>
       </header>
 
-      {/* Toggle tabs */}
       <div className={styles.tabs}>
         <button
           className={[styles.tab, mode === 'signup' ? styles.tabActive : ''].join(' ')}
@@ -245,7 +250,6 @@ export default function AuthPage() {
         </button>
       </div>
 
-      {/* Card */}
       <div className={styles.card}>
         {mode === 'signup'
           ? <SignupForm onSwitch={switchToLogin} />

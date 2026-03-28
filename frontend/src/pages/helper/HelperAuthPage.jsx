@@ -1,28 +1,30 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../AuthPage.module.css';
 
 function HelperSignupForm({ onSwitch }) {
   const navigate = useNavigate();
-  const { loginAsHelper } = useAuth();
+  const { signupAsHelper } = useAuth();
   const [form, setForm] = useState({
     fullName: '',
     email: '',
-    licenseNumber: '',
     password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.fullName || !form.email || !form.licenseNumber || !form.password || !form.confirmPassword) {
+    if (submitting.current) return;
+    if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
       setError('Please fill in all fields.');
       return;
     }
@@ -34,8 +36,17 @@ function HelperSignupForm({ onSwitch }) {
       setError('Password must be at least 6 characters.');
       return;
     }
-    loginAsHelper(form.fullName, 'mock-token');
-    navigate('/helper/dashboard');
+    submitting.current = true;
+    setLoading(true);
+    try {
+      await signupAsHelper({ username: form.fullName, email: form.email, password: form.password });
+      navigate('/helper/dashboard');
+    } catch (err) {
+      setError(err.message || 'Sign up failed. Please try again.');
+    } finally {
+      submitting.current = false;
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,30 +57,17 @@ function HelperSignupForm({ onSwitch }) {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>Full Name</label>
-            <input
-              className={styles.input}
-              type="text"
-              name="fullName"
-              placeholder="Dr. Jane Smith"
-              value={form.fullName}
-              onChange={handleChange}
-              autoComplete="name"
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>License Number</label>
-            <input
-              className={styles.input}
-              type="text"
-              name="licenseNumber"
-              placeholder="e.g. MH-2024-0012"
-              value={form.licenseNumber}
-              onChange={handleChange}
-            />
-          </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Full Name</label>
+          <input
+            className={styles.input}
+            type="text"
+            name="fullName"
+            placeholder="Dr. Jane Smith"
+            value={form.fullName}
+            onChange={handleChange}
+            autoComplete="name"
+          />
         </div>
 
         <div className={styles.field}>
@@ -113,8 +111,8 @@ function HelperSignupForm({ onSwitch }) {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" className={styles.submitBtn}>
-          Create Helper Account →
+        <button type="submit" className={styles.submitBtn} disabled={loading}>
+          {loading ? 'Creating account…' : 'Create Helper Account →'}
         </button>
       </form>
 
@@ -133,22 +131,32 @@ function HelperLoginForm({ onSwitch }) {
   const { loginAsHelper } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting.current) return;
     if (!form.email || !form.password) {
       setError('Please enter your email and password.');
       return;
     }
-    // Mock login — derive name from email
-    const name = form.email.split('@')[0];
-    loginAsHelper(name, 'mock-token');
-    navigate('/helper/dashboard');
+    submitting.current = true;
+    setLoading(true);
+    try {
+      await loginAsHelper({ email: form.email, password: form.password });
+      navigate('/helper/dashboard');
+    } catch (err) {
+      setError(err.message || 'Login failed. Check your credentials.');
+    } finally {
+      submitting.current = false;
+      setLoading(false);
+    }
   };
 
   return (
@@ -187,8 +195,8 @@ function HelperLoginForm({ onSwitch }) {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" className={styles.submitBtn}>
-          Log In →
+        <button type="submit" className={styles.submitBtn} disabled={loading}>
+          {loading ? 'Logging in…' : 'Log In →'}
         </button>
       </form>
 

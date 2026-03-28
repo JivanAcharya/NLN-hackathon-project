@@ -15,7 +15,6 @@ def register_user(user: UserRegisterSchema, db: Session = Depends(get_db)):
     """
     Register a new user.
     """
-    print(type(UserRegisterSchema))
     existing_user = crud.get_user_by_email(db = db, email = user.email)
     if existing_user:
         raise HTTPException(

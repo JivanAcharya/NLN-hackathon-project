@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -34,13 +34,13 @@ def create_user(*,db: Session, user_create: UserRegisterSchema) -> User:
 
     return db_user
 
-def get_user_by_email(*,db: Session, email: str) -> User | None:
+def get_user_by_email(*,db: Session, email: str) -> Optional[User]:
     # statement = select(User).where(User.email == email)
     # session_user = db.exec(statement).first()
     session_user = db.query(User).filter(User.email == email).first()
     return session_user
 
-def authenticate(*, db: Session, email:str, password:str) -> User | None:
+def authenticate(*, db: Session, email:str, password:str) -> Optional[User]:
     user = get_user_by_email(db=db,email=email)
     if not user:
         return None
