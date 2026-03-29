@@ -1,12 +1,12 @@
 
-import google.generativeai as genai
 from app.models.models import DomainExpertise
+from app.core.llm import get_basic_response
 import re
 import json
 
-genai.configure(api_key="AIzaSyCOIO38luqg-jil4gw18h-5VhqvpApeu7E")
-model = genai.GenerativeModel("gemini-2.0-flash")
+
 ALLOWED_DOMAINS = [d.value for d in DomainExpertise if d != DomainExpertise.GENERAL]
+
 
 
 def analyze_conversation(conversation: str) -> dict:
@@ -23,12 +23,14 @@ Return ONLY a JSON object like this, nothing else:
     "domain": "financial"
 }}
 
-Conversation:
-{conversation}
-"""
-        response = model.generate_content(prompt)
-        clean = re.sub(r"```json|```", "", response.text).strip()
-        result = json.loads(clean)
+    Conversation:
+    {conversation}
+    """
+
+    response = model.generate_content(prompt)
+
+    clean = re.sub(r"```json|```", "", response.text).strip()
+    result = json.loads(clean)
 
         if result.get("domain") not in ALLOWED_DOMAINS:
             result["domain"] = DomainExpertise.GENERAL.value

@@ -3,34 +3,16 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Optional, List
-from app.api.deps import get_db, get_current_user, get_current_helper
-from app.models import User
-from app.models.models import HelpSession, SessionStatus, Helper, HelpRequestAcceptance, SessionFeedback
+from app.api.deps import get_db
+from app.models.models import HelpSession, SessionStatus
 from app.services.analyze import analyze_conversation
-from app.schemas.schemas import HelpRequestSchema, AnalyzeRequest, SessionFeedbackSchema
+from app.schemas.schemas import HelpRequestSchema, AnalyzeRequest
+from app.services.matching import find_available_helper
+from pydantic import BaseModel
 import uuid
 
 router = APIRouter(tags=["Help Request"], prefix="/api/v1")
 
-
-def _parse_categories(raw: Optional[str]) -> List[str]:
-    if not raw:
-        return []
-    return [c.strip() for c in raw.split(",") if c.strip()]
-
-
-def _helper_info(h: Helper) -> dict:
-    return {
-        "helper_id": h.helper_id,
-        "alias": h.alias or f"Peer_{h.helper_id}",
-        "role": h.role or "peer",
-        "domain_expertise": h.domain_expertise.value if h.domain_expertise else None,
-    }
-
-
-def _seeker_alias(u: User) -> str:
-    return u.alias or f"Anon_{u.user_id}"
 
 
 @router.post("/analyze")

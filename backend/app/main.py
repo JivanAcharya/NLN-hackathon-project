@@ -32,8 +32,9 @@ with engine.connect() as conn:
     conn.execute(text("ALTER TABLE helpers ADD COLUMN IF NOT EXISTS role VARCHAR(20)"))
     conn.execute(text("ALTER TABLE helpers ADD COLUMN IF NOT EXISTS proof_id TEXT"))
     conn.execute(text("ALTER TABLE helpers ADD COLUMN IF NOT EXISTS alias VARCHAR(100)"))
-    # seeker alias
+    # seeker alias + initial assessment
     conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS alias VARCHAR(100)"))
+    conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS initial_assesment JSON"))
     conn.commit()
 # ─────────────────────────────────────────────────────────────────────────────
 
