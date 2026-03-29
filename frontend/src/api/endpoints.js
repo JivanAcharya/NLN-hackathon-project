@@ -7,8 +7,7 @@
  * - /api/v1/websocket/chat/* - WebSocket routes
  */
 
-import apiClient, { BASE_URL } from './apiClient';
-import axios from 'axios';
+import apiClient from './apiClient';
 
 // ============================================
 // AUTH ENDPOINTS
@@ -48,7 +47,7 @@ export async function registerHelper({ username, email, password, domain_experti
  */
 export async function loginUser({ email, password }) {
   const body = new URLSearchParams({ username: email, password });
-  const response = await axios.post(`${BASE_URL}/api/v1/auth/login/access-token`, body, {
+  const response = await apiClient.post('/api/v1/auth/login/access-token', body, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
   return response.data;
@@ -60,7 +59,7 @@ export async function loginUser({ email, password }) {
  */
 export async function loginHelper({ email, password }) {
   const body = new URLSearchParams({ username: email, password });
-  const response = await axios.post(`${BASE_URL}/api/v1/auth/helper/login/access-token`, body, {
+  const response = await apiClient.post('/api/v1/auth/helper/login/access-token', body, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
   return response.data;
@@ -72,7 +71,7 @@ export async function loginHelper({ email, password }) {
  * Returns: { access_token, refresh_token, token_type }
  */
 export async function refreshTokens(refreshToken) {
-  const response = await axios.post(`${BASE_URL}/api/v1/auth/refresh-token`, {
+  const response = await apiClient.post('/api/v1/auth/refresh-token', {
     refresh_token: refreshToken,
   });
   return response.data;
@@ -301,7 +300,10 @@ export async function getWebSocketChatHistory(sessionId) {
  * @returns {WebSocket}
  */
 export function createWebSocketConnection(sessionId, role) {
-  const wsUrl = `ws://localhost:8000/api/v1/websocket/chat/${sessionId}/${role}`;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const wsProtocol = apiBase.startsWith('https') ? 'wss' : 'ws';
+  const wsHost = new URL(apiBase).host;
+  const wsUrl = `${wsProtocol}://${wsHost}/api/v1/websocket/chat/${sessionId}/${role}`;
   return new WebSocket(wsUrl);
 }
 

@@ -40,9 +40,9 @@ async function refreshAccessToken() {
     throw new Error('No refresh token available');
   }
 
-  const response = await axios.post(`${BASE_URL}/api/v1/auth/refresh-token`, {
+  const response = await axios.post('/api/v1/auth/refresh-token', {
     refresh_token: stored.refreshToken,
-  });
+  }, { baseURL: BASE_URL });
 
   const { access_token, refresh_token } = response.data;
   updateStoredTokens(access_token, refresh_token);
