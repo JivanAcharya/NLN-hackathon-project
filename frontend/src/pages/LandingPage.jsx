@@ -14,10 +14,10 @@ function TrustPillar({ icon, title, description }) {
   );
 }
 
-function CommunityCard({ title, description }) {
+function CommunityCard({ title, description, image }) {
   return (
     <div className={styles.communityCard}>
-      <div className={styles.communityCardImg} />
+      <div className={styles.communityCardImg}><img src={image} alt={title}/></div>
       <h4 className={styles.communityCardTitle}>{title}</h4>
       <p className={styles.communityCardDesc}>{description}</p>
     </div>
@@ -67,8 +67,18 @@ export default function LandingPage() {
         </div>
         <div className={styles.heroImage}>
           <div className={styles.heroImagePlaceholder} >
-            <img src="/images/a.jpg" alt="Hero" />
+            <img src="/images/e.jpg" alt="Hero" />
           </div>
+        </div>
+      </section>
+
+       {/* Community Choice */}
+       <section className={styles.community} id="community">
+        <h2 className={styles.sectionTitle}>Community Choice</h2>
+        <div className={styles.communityGrid}>
+          <CommunityCard title="Anonymous Peer Support" description="Talk to someone who truly understands what you're going through." image="/images/b.jpg"  />
+          <CommunityCard title="Licensed Therapists" description="Professional care from verified clinical psychologists." image="/images/c.jpg"/>
+          <CommunityCard title="AI Companion" description="Available 24/7 — your first step toward feeling better." image="/images/d.jpg"/>
         </div>
       </section>
 
@@ -103,15 +113,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Community Choice */}
-      <section className={styles.community} id="community">
-        <h2 className={styles.sectionTitle}>Community Choice</h2>
-        <div className={styles.communityGrid}>
-          <CommunityCard title="Anonymous Peer Support" description="Talk to someone who truly understands what you're going through." />
-          <CommunityCard title="Licensed Therapists" description="Professional care from verified clinical psychologists." />
-          <CommunityCard title="AI Companion" description="Available 24/7 — your first step toward feeling better." />
-        </div>
-      </section>
+     
 
       {/* CTA Banner */}
       <section className={styles.ctaBanner}>
