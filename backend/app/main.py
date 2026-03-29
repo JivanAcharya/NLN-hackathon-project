@@ -1,0 +1,33 @@
+
+from fastapi import FastAPI
+from fastapi import APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+from app.models import Base
+from app.db.session import engine
+from app.api.routes import auth, chat, help_request, web_socket_chat
+from app.core.config import settings
+# from app.api
+
+app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173","http://127.0.0.1:5174"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+#create tables
+Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+def read_root():
+    return{"message":"Welcome to Chatbot"}
+
+
+
+app.include_router(auth.router)
+app.include_router(chat.router)
+app.include_router(help_request.router)
+app.include_router(web_socket_chat.router)

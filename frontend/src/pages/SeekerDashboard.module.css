@@ -1,0 +1,184 @@
+.content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  padding: 28px;
+  align-items: start;
+}
+
+.left { display: flex; flex-direction: column; gap: 24px; }
+.right { display: flex; flex-direction: column; gap: 20px; }
+
+/* Greeting */
+.greeting {}
+.greetingTitle { font-size: 22px; font-weight: 800; color: var(--color-text-primary); margin-bottom: 4px; }
+.greetingAnon { color: var(--color-primary); }
+.greetingSubtitle { font-size: 13px; color: var(--color-text-muted); }
+
+/* AI Card */
+.aiCard {
+  background: var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.aiCardIcon { font-size: 30px; }
+.aiCardBody {}
+.aiCardTitle { font-size: 22px; font-weight: 800; color: white; margin-bottom: 6px; }
+.aiCardDesc { font-size: 13px; color: rgba(255,255,255,0.82); line-height: 1.6; max-width: 420px; }
+.aiCardBtn {
+  background: white;
+  color: var(--color-primary);
+  padding: 11px 24px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  align-self: flex-start;
+  transition: opacity 0.15s;
+}
+.aiCardBtn:hover { opacity: 0.88; }
+
+/* Section */
+.section { display: flex; flex-direction: column; gap: 12px; }
+.sectionHeader { display: flex; align-items: center; justify-content: space-between; }
+.sectionTitle { font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
+.viewAll { font-size: 12px; color: var(--color-primary); font-weight: 500; }
+
+/* Helper Cards */
+.helperList { display: flex; flex-direction: column; gap: 10px; }
+
+.helperCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.15s;
+}
+.helperCard:hover { box-shadow: var(--shadow-card-hover); }
+
+.helperCardAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  flex-shrink: 0;
+}
+
+.helperCardInfo { flex: 1; }
+.helperCardName { font-size: 14px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 2px; }
+.helperCardExpertise { font-size: 12px; color: var(--color-primary); font-weight: 500; margin-bottom: 2px; }
+.helperCardExp { font-size: 11px; color: var(--color-text-muted); }
+
+.helperCardBtnStart {
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.helperCardBtnStart:hover { background: var(--color-primary-hover); }
+
+.helperCardBtnContinue {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.helperCardBtnContinue:hover { background: var(--color-primary-light); }
+
+/* Get Help Widget */
+.helpWidget {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.helpWidgetIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.helpWidgetTitle { font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+.helpWidgetDesc { font-size: 12px; color: var(--color-text-muted); line-height: 1.5; }
+
+.helpBtn {
+  background: var(--color-primary);
+  color: white;
+  padding: 11px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.15s;
+}
+.helpBtn:hover { background: var(--color-primary-hover); }
+
+.hotlineBtn {
+  background: var(--color-surface);
+  color: var(--color-alert-red);
+  border: 1.5px solid var(--color-alert-red);
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.15s;
+}
+.hotlineBtn:hover { background: var(--color-alert-red-light); }
+
+/* Streak Card */
+.streakCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.streakNext { font-size: 10px; font-weight: 700; color: var(--color-primary); letter-spacing: 0.08em; text-transform: uppercase; }
+.streakTitle { font-size: 16px; font-weight: 800; color: var(--color-text-primary); }
+.streakDesc { font-size: 12px; color: var(--color-text-muted); line-height: 1.5; }
+
+.streakRingWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.streakPct {
+  position: absolute;
+  right: 20px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-primary);
+}

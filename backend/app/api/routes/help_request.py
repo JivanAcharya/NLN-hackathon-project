@@ -1,0 +1,190 @@
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.api.deps import get_current_user, get_db
+from app.models.models import HelpSession, SessionStatus, User, UserAssessment
+from app.services.analyze import onboarding_assesment,analyze_conversation
+from app.schemas.schemas import HelpRequestSchema, AnalyzeRequest, AssessmentRequest
+from app.services.matching import find_available_helper
+from pydantic import BaseModel
+import uuid
+
+router = APIRouter(tags=["Help Request"], prefix="/api/v1")
+
+
+def store_user_assessments(db: Session, user_id: int, assessments: list) -> None:
+    """
+    Store individual question/answer pairs in UserAssessment table.
+    Clears existing assessments for the user before adding new ones.
+    """
+    # Delete existing assessments for this user
+    db.query(UserAssessment).filter(UserAssessment.user_id == user_id).delete()
+    
+    # Add new assessments
+    for item in assessments:
+        assessment = UserAssessment(
+            user_id=user_id,
+            question=item.question if hasattr(item, 'question') else item.get('question', ''),
+            answer=item.answer if hasattr(item, 'answer') else item.get('answer', '')
+        )
+        db.add(assessment)
+    
+    db.commit()
+
+
+def get_user_assessments_as_string(db: Session, user_id: int) -> str:
+    """
+    Retrieve user assessments and format as string for LLM context.
+    """
+    assessments = db.query(UserAssessment).filter(UserAssessment.user_id == user_id).all()
+    if not assessments:
+        return ""
+    
+    formatted = []
+    for a in assessments:
+        formatted.append(f"Q: {a.question}\nA: {a.answer}")
+    
+    return "\n\n".join(formatted)
+
+
+def process_initial_assessment(db: Session, user: User, conversation: str) -> dict:
+    """
+    Process initial assessment - analyze conversation and store results.
+    Can be called from initial-assessment endpoint or from chat when assessment is missing.
+    """
+    assessment_result = onboarding_assesment(conversation)
+    user.initial_assesment = assessment_result
+    db.commit()
+    return assessment_result
+
+
+@router.post("/assessments")
+def store_assessments(
+    data: AssessmentRequest, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Store individual question/answer pairs from onboarding.
+    """
+    store_user_assessments(db, current_user.user_id, data.assessments)
+    return {"message": "Assessments stored successfully", "count": len(data.assessments)}
+
+
+@router.post("/initial-assessment")
+def initial_assesment(data: AnalyzeRequest, db: Session = Depends(get_db),current_user : User = Depends(get_current_user)):
+    assessment_result = process_initial_assessment(db, current_user, data.conversation)
+    return assessment_result
+
+@router.post("/analyze")
+def analyze(data: AnalyzeRequest):
+    result = analyze_conversation(data.conversation)
+    return { "domain": result["domain"] }
+
+
+@router.post("/request")
+def request_help(data:HelpRequestSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    helper=find_available_helper(data.domain,db)
+    if not helper:
+        raise HTTPException(status_code=404, detail="No helper available at the moment. Please try again later.")
+    
+    session=HelpSession(
+        session_id=str(uuid.uuid4()),
+        user_id=current_user.user_id,
+        helper_id=helper.helper_id,
+        status=SessionStatus.ACTIVE
+    )
+# User polls this while on waiting screen
+@router.get("/status/{session_id}")
+def get_session_status(session_id: str, db: Session = Depends(get_db)):
+    session = db.query(HelpSession).filter(
+        HelpSession.session_id == session_id
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    return { "status": session.status }
+
+
+
+## Helper sees all pending requests assigned to them
+@router.get("/pending/{helper_id}")
+def get_pending_requests(helper_i:int, db:Session=Depends(get_db)):
+    sessions=db.query(HelpSession).filter(
+        HelpSession.helper_id==helper_i,
+        HelpSession.status==SessionStatus.PENDING
+    ).all()
+    return sessions
+
+
+
+## Helper accepts the request
+@router.post("/accept/{session_id}")
+def accept_request(session_id:str,db:Session=Depends(get_db)):
+    session= db.query(HelpSession).filter(HelpSession.session_id==session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Help session not found.")
+    if session.status != SessionStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Help session is not pending.")
+    session.status=SessionStatus.ACTIVE
+    db.commit()
+    return {
+        "message": "Request accepted. Chat is now active.",
+        "session_id": session.session_id
+    }
+    
+
+## Rejection case is not handled for now
+# Helper rejects the request — find next available helper
+# @router.post("/reject/{session_id}")
+# def reject_request(session_id: str, db: Session = Depends(get_db)):
+#     session = db.query(HelpSession).filter(
+#         HelpSession.session_id == session_id
+#     ).first()
+
+#     if not session:
+#         raise HTTPException(status_code=404, detail="Session not found.")
+
+#     # mark current session as closed
+#     session.status = SessionStatus.CLOSED
+#     db.commit()
+
+#     # try to find another helper
+#     new_helper = find_available_helper(session.domain, db)
+
+#     if not new_helper:
+#         return {"message": "No helpers available right now. Please try again later."}
+
+#     # create new session with next helper
+#     new_session = HelpSession(
+#         session_id=str(uuid.uuid4()),
+#         user_id=session.user_id,
+#         helper_id=new_helper.helper_id,
+#         status=SessionStatus.PENDING
+#     )
+#     db.add(new_session)
+#     db.commit()
+#     db.refresh(new_session)
+
+#     return {
+#         "message": "Redirected to next available helper.",
+#         "session_id": new_session.session_id,
+#         "helper_id": new_helper.helper_id
+    # }
+    
+    
+## Web socket closed by either side
+@router.post("/close/{session_id}")
+def close_session(session_id: str, db: Session = Depends(get_db)):
+    session = db.query(HelpSession).filter(
+        HelpSession.session_id == session_id
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    session.status = SessionStatus.CLOSED
+    db.commit()
+
+    return {"message": "Session closed successfully."}
