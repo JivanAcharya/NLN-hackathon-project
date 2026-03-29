@@ -2,20 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/layout/AppLayout';
 import { useAuth } from '../../context/AuthContext';
-import { getPendingRequests } from '../../api/endpoints';
+import { getPendingRequests, getActiveSessions } from '../../api/endpoints';
 import styles from './HelperDashboard.module.css';
-
-const activeSessions = [
-  { id: 's1', userId: '88219', initials: 'JD', duration: 'Connected for 42m', snippet: '"Thank you for the breathing exercises, I feel a bit more..."' },
-  { id: 's2', userId: '77120', initials: 'MK', duration: 'Connected for 1h 15m', snippet: '"I\'ll try to implement the schedule changes this weekend..."' },
-  { id: 's3', userId: '90014', initials: 'PL', duration: 'Connected for 5m', snippet: '"Hello, I\'m just starting to look at the resources..."' },
-];
 
 export default function HelperDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
 
   useEffect(() => {
     async function fetchPending() {
@@ -31,6 +27,20 @@ export default function HelperDashboard() {
       }
     }
     fetchPending();
+
+    async function fetchActive() {
+      if (!user?.userId) return;
+      try {
+        const data = await getActiveSessions(user.userId);
+        setActiveSessions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to fetch active sessions:', err);
+        setActiveSessions([]);
+      } finally {
+        setLoadingSessions(false);
+      }
+    }
+    fetchActive();
   }, [user?.userId]);
 
   return (
@@ -46,9 +56,9 @@ export default function HelperDashboard() {
         <section className={styles.statsGrid}>
           <div className={styles.statCard}>
             <p className={styles.statLabel}>Active Sessions</p>
-            <h3 className={styles.statValue}>12</h3>
+            <h3 className={styles.statValue}>{activeSessions.length}</h3>
             <div className={styles.statMeta + ' ' + styles.metaGreen}>
-              <span className={styles.trendIcon}>↑</span> 2 more than yesterday
+              <span className={styles.trendIcon}>●</span> Live
             </div>
           </div>
           <div className={styles.statCard}>
@@ -89,7 +99,9 @@ export default function HelperDashboard() {
               ) : pendingRequests.length === 0 ? (
                 <p style={{ color: 'var(--color-text-muted)', padding: '16px' }}>No pending requests at the moment.</p>
               ) : (
-                pendingRequests.map((req) => (
+                pendingRequests.map((req) => {
+                  const prefs = req.preferences || {};
+                  return (
                 <div
                   key={req.session_id}
                   className={[styles.requestCard, styles.urgency_moderate].join(' ')}
@@ -99,7 +111,7 @@ export default function HelperDashboard() {
                       <span className={styles.reqAnon}>User #{req.user_id}</span>
                       <span className={[styles.urgencyBadge, styles.badge_moderate].join(' ')}>
                         <span className={styles.urgencyDot} />
-                        Pending
+                        {prefs.helper_type === 'therapist' ? '🩺 Therapist Req.' : '🤝 Peer Req.'}
                       </span>
                     </div>
                     <button
@@ -109,12 +121,22 @@ export default function HelperDashboard() {
                       View Brief <span>›</span>
                     </button>
                   </div>
-                  <p className={styles.reqSnippet}>Session ID: {req.session_id}</p>
+                  {prefs.categories && prefs.categories.length > 0 && (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '6px 0' }}>
+                      {prefs.categories.map(c => (
+                        <span key={c} style={{ fontSize: '0.72rem', background: 'var(--color-surface-alt, #f3f4f6)', borderRadius: '12px', padding: '2px 10px', color: 'var(--color-text-muted)' }}>{c}</span>
+                      ))}
+                    </div>
+                  )}
+                  {prefs.message && (
+                    <p className={styles.reqSnippet}>"{prefs.message}"</p>
+                  )}
                   <p className={styles.reqTime}>
                     {new Date(req.created_at).toLocaleString()}
                   </p>
                 </div>
-                ))
+                  );
+                })
               )}
             </div>
           </section>
@@ -126,25 +148,34 @@ export default function HelperDashboard() {
               <button className={styles.viewAllLink}>View All Sessions</button>
             </div>
             <div className={styles.sessionList}>
-              {activeSessions.map((s) => (
-                <div key={s.id} className={styles.sessionRow}>
-                  <div className={styles.sessionLeft}>
-                    <div className={styles.sessionAvatar}>{s.initials}</div>
-                    <div>
-                      <p className={styles.sessionUserId}>User ID: #{s.userId}</p>
-                      <p className={styles.sessionDuration}>{s.duration}</p>
+              {loadingSessions ? (
+                <p style={{ color: 'var(--color-text-muted)', padding: '16px' }}>Loading sessions...</p>
+              ) : activeSessions.length === 0 ? (
+                <p style={{ color: 'var(--color-text-muted)', padding: '16px' }}>No active sessions.</p>
+              ) : (
+                activeSessions.map((s) => (
+                  <div key={s.session_id} className={styles.sessionRow}>
+                    <div className={styles.sessionLeft}>
+                      <div className={styles.sessionAvatar}>
+                        {String(s.user_id).slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className={styles.sessionUserId}>User #{s.user_id}</p>
+                        <p className={styles.sessionDuration}>
+                          Started {new Date(s.created_at).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
+                    <span className={styles.sessionOnlineDot} />
+                    <button
+                      className={styles.goToChatBtn}
+                      onClick={() => navigate(`/helper/session/${s.session_id}`)}
+                    >
+                      💬 Go to Chat
+                    </button>
                   </div>
-                  <span className={styles.sessionOnlineDot} />
-                  <div className={styles.sessionSnippet}>{s.snippet}</div>
-                  <button
-                    className={styles.goToChatBtn}
-                    onClick={() => navigate(`/helper/session/${s.id}`)}
-                  >
-                    💬 Go to Chat
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Capacity Card */}
